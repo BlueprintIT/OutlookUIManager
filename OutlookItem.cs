@@ -567,6 +567,86 @@ namespace BlueprintIT.Office.Outlook
 			}
 		}
 
+		public string GetEmailAddress(int address)
+		{
+			if ((address>=1)&&(address<=3))
+			{
+				return (string)GetProperty("Email"+address+"Address");
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		public string GetEmailAddressType(int address)
+		{
+			if ((address>=1)&&(address<=3))
+			{
+				return (string)GetProperty("Email"+address+"AddressType");
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		public string GetEmailDisplayName(int address)
+		{
+			if ((address>=1)&&(address<=3))
+			{
+				return (string)GetProperty("Email"+address+"DisplayName");
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		public string GetEmailEntryID(int address)
+		{
+			if ((address>=1)&&(address<=3))
+			{
+				return (string)GetProperty("Email"+address+"EntryID");
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		public void SetEmailAddress(int address, string value)
+		{
+			if ((address>=1)&&(address<=3))
+			{
+				SetProperty("Email"+address+"Address",value);
+			}
+		}
+
+		public void SetEmailAddressType(int address, string value)
+		{
+			if ((address>=1)&&(address<=3))
+			{
+				SetProperty("Email"+address+"AddressType",value);
+			}
+		}
+
+		public void SetEmailDisplayName(int address, string value)
+		{
+			if ((address>=1)&&(address<=3))
+			{
+				SetProperty("Email"+address+"DisplayName",value);
+			}
+		}
+
+		public void SetEmailEntryID(int address, string value)
+		{
+			if ((address>=1)&&(address<=3))
+			{
+				SetProperty("Email"+address+"EntryID",value);
+			}
+		}
+
 #if (OL2003)
 		public void AddPicture(string arg0)
 		{
