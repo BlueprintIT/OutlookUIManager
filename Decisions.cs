@@ -2,7 +2,7 @@
  * $HeadURL$
  * $LastChangedBy$
  * $Date$
- * $Revision$
+ * $Revision: 63 $
  */
 
 using System;
@@ -71,6 +71,60 @@ namespace BlueprintIT.Office
 		public virtual bool GetValue(OfficeWindow window)
 		{
 			return normal;
+		}
+	}
+
+	public class LogicalOr: BooleanValue
+	{
+		private IList values;
+
+		public LogicalOr(): base(false)
+		{
+			values = new ArrayList();
+		}
+
+		public void AddValue(BooleanValue value)
+		{
+			values.Add(value);
+		}
+
+		public override bool GetValue(OfficeWindow window)
+		{
+			foreach (BooleanValue value in values)
+			{
+				if (value.GetValue(window))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	public class LogicalAnd: BooleanValue
+	{
+		private IList values;
+
+		public LogicalAnd(): base(true)
+		{
+			values = new ArrayList();
+		}
+
+		public void AddValue(BooleanValue value)
+		{
+			values.Add(value);
+		}
+
+		public override bool GetValue(OfficeWindow window)
+		{
+			foreach (BooleanValue value in values)
+			{
+				if (!value.GetValue(window))
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 
