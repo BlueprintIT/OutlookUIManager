@@ -13,9 +13,9 @@ using RlOutlook = Microsoft.Office.Interop.Outlook;
 
 namespace BlueprintIT.Office.Outlook
 {
-	public delegate void OutlookEventHandler(UIManager sender);
+	public delegate void OutlookEventHandler(OfficeUIManager sender);
 
-	public class OutlookUIManager: UIManager
+	public class OutlookUIManager: OfficeUIManager
 	{
 		private RlOutlook.Application application;
 		private RlOutlook.Inspectors inspectors;
