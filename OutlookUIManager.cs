@@ -26,8 +26,6 @@ namespace BlueprintIT.Office.Outlook
 		private IList inspectorCache;
 		private IList explorerCache;
 
-		private TextWriter logger;
-
 		private RlOutlook.InspectorsEvents_NewInspectorEventHandler newInspectorEvent;
 		private RlOutlook.ExplorersEvents_NewExplorerEventHandler newExplorerEvent;
 		private InspectorEventHandler inspectorCloseEvent;
@@ -58,8 +56,6 @@ namespace BlueprintIT.Office.Outlook
 			inspectorToolbars = new Toolbars(this);
 			explorerToolbars = new Toolbars(this);
 
-			logger = new StreamWriter("c:\\log.txt",true);
-
 			BindEvents();
 
 			foreach (RlOutlook.Inspector inspector in inspectors)
@@ -71,12 +67,6 @@ namespace BlueprintIT.Office.Outlook
 			{
 				OnExplorerOpen(new OutlookExplorer(explorer));
 			}
-		}
-
-		internal override void log(string text)
-		{
-			logger.WriteLine(text);
-			logger.Flush();
 		}
 
 		public override IList Windows
@@ -135,7 +125,6 @@ namespace BlueprintIT.Office.Outlook
 			if (application!=null)
 			{
 				UnbindEvents();
-				logger.Close();
 #if (COMRELEASE)
 				System.Runtime.InteropServices.Marshal.ReleaseComObject(inspectors);
 				System.Runtime.InteropServices.Marshal.ReleaseComObject(explorers);
@@ -197,7 +186,6 @@ namespace BlueprintIT.Office.Outlook
 			System.Runtime.InteropServices.Marshal.ReleaseComObject(Inspector);
 #endif
 			OutlookInspector inspector = new OutlookInspector(inspectors[inspectors.Count]);
-			log(inspector.CurrentItem.EntryID);
 			OnInspectorOpen(inspector);
 		}
 
@@ -212,7 +200,6 @@ namespace BlueprintIT.Office.Outlook
 
 		private void OnInspectorOpen(OutlookInspector inspector)
 		{
-			log("Inspector opened");
 			inspectorCache.Add(inspector);
 			inspector.Closed+=inspectorCloseEvent;
 			OnWindowOpen(inspector);
@@ -230,7 +217,6 @@ namespace BlueprintIT.Office.Outlook
 				InspectorClose(inspector);
 			}
 			inspectorCache.Remove(inspector);
-			log("Inspector closed ("+inspectorCache.Count+")");
 			if ((explorerCache.Count==0)&&(inspectorCache.Count==0))
 			{
 				OnOutlookClose();
@@ -239,7 +225,6 @@ namespace BlueprintIT.Office.Outlook
 
 		private void OnExplorerOpen(OutlookExplorer explorer)
 		{
-			log("Explorer opened");
 			explorerCache.Add(explorer);
 			explorer.Closed+=explorerCloseEvent;
 			OnWindowOpen(explorer);
@@ -257,7 +242,6 @@ namespace BlueprintIT.Office.Outlook
 				ExplorerClose(explorer);
 			}
 			explorerCache.Remove(explorer);
-			log("Explorer closed ("+explorerCache.Count+")");
 			if ((explorerCache.Count==0)&&(inspectorCache.Count==0))
 			{
 				OnOutlookClose();
@@ -266,7 +250,6 @@ namespace BlueprintIT.Office.Outlook
 
 		private void OnOutlookClose()
 		{
-			log("Outlook closed");
 			if (OutlookClose!=null)
 			{
 				OutlookClose(this);

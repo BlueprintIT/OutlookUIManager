@@ -83,12 +83,6 @@ namespace BlueprintIT.Office
 		{
 			Dispose();
 		}
-
-		/// <summary>
-		///		Logs a message to a log file. To be removed when things seem to be working.
-		/// </summary>
-		/// <param name="text">THe message to be logged</param>
-		internal abstract void log(string text);
 		
 		/// <summary>
 		///		Returns a list of <see cref="OfficeWindow">OfficeWindows</see> currently open

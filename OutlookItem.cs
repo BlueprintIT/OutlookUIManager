@@ -553,8 +553,7 @@ namespace BlueprintIT.Office.Outlook
 			}
 			if (property=="NetMeetingAlias")
 			{
-				id.id = 0x0;
-				return id;
+				// TODO figure out this.
 			}
 			return base.GetMapiID(property);
 		}
@@ -3016,22 +3015,22 @@ namespace BlueprintIT.Office.Outlook
 
 		public virtual object Copy()
 		{
-			return CallMethod("Close");
+			return CallMethod("Copy");
 		}
 
 		public virtual void Delete()
 		{
-			CallMethod("Close");
+			CallMethod("Delete");
 		}
 
 		public virtual void Display(object arg0)
 		{
-			CallMethod("Close",arg0);
+			CallMethod("Display",arg0);
 		}
 
 		public virtual object Move(RlOutlook.MAPIFolder arg0)
 		{
-			return CallMethod("Close",arg0);
+			return CallMethod("Move",arg0);
 		}
 
 		public virtual void PrintOut()
@@ -3041,12 +3040,12 @@ namespace BlueprintIT.Office.Outlook
 
 		public virtual void Save()
 		{
-			CallMethod("Close");
+			CallMethod("Save");
 		}
 
 		public virtual void SaveAs(string arg0, object arg1)
 		{
-			CallMethod("Close",arg0,arg1);
+			CallMethod("SaveAs",arg0,arg1);
 		}
 	#endregion
 	}

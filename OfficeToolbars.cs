@@ -109,12 +109,10 @@ namespace BlueprintIT.Office
 				}
 				if (commandbar==null)
 				{
-					manager.log("Creating new toolbar");
 					commandbar = bars.Add(toolbar.Caption,toolbar.Position,false,true);
 				}
 				else
 				{
-					manager.log("Re-mapping old toolbar");
 				}
 				toolbar.Apply(window,commandbar);
 				manager.RegisterCommandBar(commandbar,window,toolbar);
@@ -540,7 +538,6 @@ namespace BlueprintIT.Office
 					ToolbarControl tcontrol = (ToolbarControl)controlMap[thetag];
 					if (tcontrol!=null)
 					{
-						OfficeUIManager.log("Re-mapping old control");
 						tcontrol.Apply(window,control);
 						OfficeUIManager.RegisterCommandBarControl(control,window,tcontrol);
 						toadd.Remove(tcontrol);
@@ -549,7 +546,6 @@ namespace BlueprintIT.Office
 			}
 			foreach (ToolbarControl tcontrol in toadd)
 			{
-				OfficeUIManager.log("Creating new control");
 				object newpos = System.Reflection.Missing.Value;
 				if (tcontrol.Before!=null)
 				{
