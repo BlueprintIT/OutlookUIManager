@@ -14,7 +14,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
-namespace MaillistManager
+namespace BlueprintIT
 {
 	/// <devdoc>
 	///     This class is intended to use with the C# 'using' statement in
