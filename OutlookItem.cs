@@ -467,17 +467,19 @@ namespace BlueprintIT.Office.Outlook
 		{
 		}
 
-		protected override Tags GetMapiTag(string property)
+		protected override Tags GetMapiTag(string property, out bool found)
 		{
 			if (property=="Body")
 			{
+				found=true;
 				return Tags.PR_BODY;
 			}
 			if (property=="ReferredBy")
 			{
+				found=true;
 				return Tags.PR_REFERRED_BY_NAME;
 			}
-			return base.GetMapiTag(property);
+			return base.GetMapiTag(property,out found);
 		}
 
 		protected override MAPINAMEID GetMapiID(string property)
@@ -2482,6 +2484,9 @@ namespace BlueprintIT.Office.Outlook
 		protected static Guid CdoPropSetID6 = new Guid("0006200E00000000C000000000000046");
 		protected static Guid CdoPropSetID7 = new Guid("0006200A00000000C000000000000046");
 
+		private IntPtr pUnk = IntPtr.Zero;
+		private IMAPIProp propset = null;
+
 		#region Constructors
 		protected OutlookItem(object item)
 		{
@@ -2586,6 +2591,12 @@ namespace BlueprintIT.Office.Outlook
 #if (OL2002)
 				itemProperties=null;
 #endif
+				if (propset!=null)
+				{
+					System.Runtime.InteropServices.Marshal.Release(pUnk);
+					propset.Dispose();
+					propset=null;
+				}
 				oItem=null;
 			}
 			System.GC.SuppressFinalize(this);
@@ -2617,8 +2628,37 @@ namespace BlueprintIT.Office.Outlook
 			return null;
 		}
 
-		protected virtual Tags GetMapiTag(string property)
+		private IMAPIProp GetPropSet()
 		{
+			if (propset==null)
+			{
+				pUnk = System.Runtime.InteropServices.Marshal.GetIUnknownForObject(MAPIOBJECT);
+				propset = (IMAPIProp)pUnk;
+			}
+			return propset;
+		}
+
+		protected virtual Tags GetMapiTag(string property, out bool found)
+		{
+			try
+			{
+				MAPINAMEID id = GetMapiID(property);
+				if (id!=null)
+				{
+					GetPropSet();
+					Tags[] tags;
+					Error error = propset.GetIDsFromNames(new MAPINAMEID[] {id},IMAPIProp.FLAGS.Default,out tags);
+					if ((error==Error.Success)&&(tags.Length==1))
+					{
+						found=true;
+						return tags[0];
+					}
+				}
+			}
+			catch
+			{
+			}
+			found=false;
 			return Tags.ptagNull;
 		}
 
@@ -2626,70 +2666,32 @@ namespace BlueprintIT.Office.Outlook
 		{
 			if (UseMAPI)
 			{
-				IMAPIProp propset = null;
-				IntPtr unk = IntPtr.Zero;
-				Error error;
-				object result = null;
-				bool foundresult = false;
-
 				try
 				{
-					Tags tag = GetMapiTag(property);
-					if (tag==Tags.ptagNull)
+					bool found;
+					Tags tag = GetMapiTag(property, out found);
+					if (found)
 					{
-						MAPINAMEID id = GetMapiID(property);
-						if (id!=null)
-						{
-							unk = System.Runtime.InteropServices.Marshal.GetIUnknownForObject(MAPIOBJECT);
-							propset = (IMAPIProp)unk;
-							Tags[] tags;
-							error = propset.GetIDsFromNames(new MAPINAMEID[] {id},IMAPIProp.FLAGS.Default,out tags);
-							if ((error==Error.Success)&&(tags.Length==1))
-							{
-								tag=tags[0];
-							}
-						}
-					}
-					if (tag!=Tags.ptagNull)
-					{
-						if (propset==null)
-						{
-							unk = System.Runtime.InteropServices.Marshal.GetIUnknownForObject(MAPIOBJECT);
-							propset = (IMAPIProp)unk;
-						}
+						GetPropSet();
 						Value[] values;
-						error=propset.GetProps(new Tags[] {tag}, IMAPIProp.FLAGS.Default, out values);
+						Error error = propset.GetProps(new Tags[] {tag}, IMAPIProp.FLAGS.Default, out values);
 						if (values.Length==1)
 						{
 							if ((values[0] is MapiNull)||(values[0] is MapiUnspecified)||(values[0] is MapiError))
 							{
-								result = null;
-								foundresult=true;
+								return null;
 							}
 							else
 							{
-								result = values[0].GetType().InvokeMember("Value",
+								return values[0].GetType().InvokeMember("Value",
 									BindingFlags.Public|BindingFlags.Instance|BindingFlags.GetField,
 									null,values[0],null);
-								foundresult=true;
 							}
 						}
 					}
 				}
-				catch (Exception e)
+				catch
 				{
-					result = e.Message;
-					foundresult=true;
-				}
-				if (propset!=null)
-				{
-					System.Runtime.InteropServices.Marshal.Release(unk);
-					propset.Dispose();
-					propset=null;
-				}
-				if (foundresult)
-				{
-					return result;
 				}
 			}
 			return oItem.GetType().InvokeMember(property,
