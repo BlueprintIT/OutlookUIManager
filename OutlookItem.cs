@@ -8,6 +8,8 @@
 using System;
 using System.Reflection;
 using RlOutlook = Microsoft.Office.Interop.Outlook;
+using MAPI33;
+using MAPI33.MapiTypes;
 
 namespace BlueprintIT.Office.Outlook
 {
@@ -463,6 +465,96 @@ namespace BlueprintIT.Office.Outlook
 	{
 		public OutlookContactItem(object item): base(item)
 		{
+		}
+
+		protected override Tags GetMapiTag(string property)
+		{
+			if (property=="Body")
+			{
+				return Tags.PR_BODY;
+			}
+			if (property=="ReferredBy")
+			{
+				return Tags.PR_REFERRED_BY_NAME;
+			}
+			return base.GetMapiTag(property);
+		}
+
+		protected override MAPINAMEID GetMapiID(string property)
+		{
+			MAPINAMEIDInt id = new MAPINAMEIDInt();
+			id.guid = CdoPropSetID3;
+			if (property=="Email1Address")
+			{
+				id.id = 0x8083;
+				return id;
+			}
+			if (property=="Email1AddressType")
+			{
+				id.id = 0x8082;
+				return id;
+			}
+			if (property=="Email1DisplayName")
+			{
+				id.id = 0x8084;
+				return id;
+			}
+			if (property=="Email1EntryID")
+			{
+				id.id = 0x8085;
+				return id;
+			}
+			if (property=="Email2Address")
+			{
+				id.id = 0x8093;
+				return id;
+			}
+			if (property=="Email2AddressType")
+			{
+				id.id = 0x8092;
+				return id;
+			}
+			if (property=="Email2DisplayName")
+			{
+				id.id = 0x8094;
+				return id;
+			}
+			if (property=="Email2EntryID")
+			{
+				id.id = 0x8095;
+				return id;
+			}
+			if (property=="Email3Address")
+			{
+				id.id = 0x80A3;
+				return id;
+			}
+			if (property=="Email3AddressType")
+			{
+				id.id = 0x80A2;
+				return id;
+			}
+			if (property=="Email3DisplayName")
+			{
+				id.id = 0x80A4;
+				return id;
+			}
+			if (property=="Email3EntryID")
+			{
+				id.id = 0x80A5;
+				return id;
+			}
+			if (property=="IMAddress")
+			{
+				id.id = 0x8062;
+				return id;
+			}
+			if (property=="NetMeetingAlias")
+			{
+				id.id = 0x0;
+				return id;
+			}
+			return base.GetMapiID(property);
 		}
 
 		public override RlOutlook.OlItemType Type
@@ -2378,7 +2470,17 @@ namespace BlueprintIT.Office.Outlook
 	public abstract class OutlookItem: IDisposable
 	{
 		protected object oItem;
+#if (OL2002)
 		private RlOutlook.ItemProperties itemProperties;
+#endif
+		internal static bool UseMAPI = true;
+		protected static Guid CdoPropSetID1 = new Guid("0006200200000000C000000000000046");
+		protected static Guid CdoPropSetID2 = new Guid("0006200300000000C000000000000046");
+		protected static Guid CdoPropSetID3 = new Guid("0006200400000000C000000000000046");
+		protected static Guid CdoPropSetID4 = new Guid("0006200800000000C000000000000046");
+		protected static Guid CdoPropSetID5 = new Guid("0002032900000000C000000000000046");
+		protected static Guid CdoPropSetID6 = new Guid("0006200E00000000C000000000000046");
+		protected static Guid CdoPropSetID7 = new Guid("0006200A00000000C000000000000046");
 
 		#region Constructors
 		protected OutlookItem(object item)
@@ -2473,13 +2575,17 @@ namespace BlueprintIT.Office.Outlook
 			if (oItem!=null)
 			{
 #if (COMRELEASE)
+#if (OL2002)
 				if (itemProperties!=null)
 				{
 					System.Runtime.InteropServices.Marshal.ReleaseComObject(itemProperties);
 				}
+#endif
 				System.Runtime.InteropServices.Marshal.ReleaseComObject(oItem);
 #endif
+#if (OL2002)
 				itemProperties=null;
+#endif
 				oItem=null;
 			}
 			System.GC.SuppressFinalize(this);
@@ -2506,8 +2612,86 @@ namespace BlueprintIT.Office.Outlook
 			get;
 		}
 
+		protected virtual MAPINAMEID GetMapiID(string property)
+		{
+			return null;
+		}
+
+		protected virtual Tags GetMapiTag(string property)
+		{
+			return Tags.ptagNull;
+		}
+
 		protected object GetProperty(string property)
 		{
+			if (UseMAPI)
+			{
+				IMAPIProp propset = null;
+				IntPtr unk = IntPtr.Zero;
+				Error error;
+				object result = null;
+				bool foundresult = false;
+
+				try
+				{
+					Tags tag = GetMapiTag(property);
+					if (tag==Tags.ptagNull)
+					{
+						MAPINAMEID id = GetMapiID(property);
+						if (id!=null)
+						{
+							unk = System.Runtime.InteropServices.Marshal.GetIUnknownForObject(MAPIOBJECT);
+							propset = (IMAPIProp)unk;
+							Tags[] tags;
+							error = propset.GetIDsFromNames(new MAPINAMEID[] {id},IMAPIProp.FLAGS.Default,out tags);
+							if ((error==Error.Success)&&(tags.Length==1))
+							{
+								tag=tags[0];
+							}
+						}
+					}
+					if (tag!=Tags.ptagNull)
+					{
+						if (propset==null)
+						{
+							unk = System.Runtime.InteropServices.Marshal.GetIUnknownForObject(MAPIOBJECT);
+							propset = (IMAPIProp)unk;
+						}
+						Value[] values;
+						error=propset.GetProps(new Tags[] {tag}, IMAPIProp.FLAGS.Default, out values);
+						if (values.Length==1)
+						{
+							if ((values[0] is MapiNull)||(values[0] is MapiUnspecified)||(values[0] is MapiError))
+							{
+								result = null;
+								foundresult=true;
+							}
+							else
+							{
+								result = values[0].GetType().InvokeMember("Value",
+									BindingFlags.Public|BindingFlags.Instance|BindingFlags.GetField,
+									null,values[0],null);
+								foundresult=true;
+							}
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					result = e.Message;
+					foundresult=true;
+				}
+				if (propset!=null)
+				{
+					System.Runtime.InteropServices.Marshal.Release(unk);
+					propset.Dispose();
+					propset=null;
+				}
+				if (foundresult)
+				{
+					return result;
+				}
+			}
 			return oItem.GetType().InvokeMember(property,
 				BindingFlags.Public|BindingFlags.GetField|BindingFlags.GetProperty,
 				null,oItem,null);
@@ -2606,6 +2790,7 @@ namespace BlueprintIT.Office.Outlook
 			}
 		}
 
+#if (OL2002)
 		public virtual RlOutlook.OlDownloadState DownloadState
 		{
 			get
@@ -2613,6 +2798,7 @@ namespace BlueprintIT.Office.Outlook
 				return (RlOutlook.OlDownloadState)GetProperty("DownloadState");
 			}
 		}
+#endif
 
 		public virtual string EntryID
 		{
@@ -2638,6 +2824,7 @@ namespace BlueprintIT.Office.Outlook
 			}
 		}
 
+#if (OL2002)
 		public virtual RlOutlook.ItemProperties ItemProperties
 		{
 			get
@@ -2649,6 +2836,7 @@ namespace BlueprintIT.Office.Outlook
 				return itemProperties;
 			}
 		}
+#endif
 
 		public virtual DateTime LastModificationTime
 		{
