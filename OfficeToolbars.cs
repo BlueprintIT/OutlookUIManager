@@ -148,6 +148,26 @@ namespace BlueprintIT.Office
 		///		The position of the toolbar.
 		/// </summary>
 		private MsoBarPosition position;
+		/// <summary>
+		///		The row that the toolbar appears on.
+		/// </summary>
+		private int rowIndex;
+		/// <summary>
+		///		The position of the toolbar in pixels away from the left edge of the inspector.
+		/// </summary>
+		private int left = -1;
+		/// <summary>
+		///		The position of the toolbar in pixels away from the right edge of the inspector.
+		/// </summary>
+		private int right = -1;
+		/// <summary>
+		///		The position of the toolbar in pixels away from the top edge of the inspector.
+		/// </summary>
+		private int top = -1;
+		/// <summary>
+		///		The position of the toolbar in pixels away from the bottom edge of the inspector.
+		/// </summary>
+		private int bottom = -1;
 
 		/// <summary>
 		///		Used to ensure that each Toolbar has a unique reference number.
@@ -216,6 +236,86 @@ namespace BlueprintIT.Office
 		}
 
 		/// <summary>
+		///		The position of the toolbar.
+		/// </summary>
+		public int RowIndex
+		{
+			get
+			{
+				return rowIndex;
+			}
+
+			set
+			{
+				rowIndex=value;
+			}
+		}
+
+		/// <summary>
+		///		The position of the toolbar.
+		/// </summary>
+		public int Left
+		{
+			get
+			{
+				return left;
+			}
+
+			set
+			{
+				left=value;
+			}
+		}
+
+		/// <summary>
+		///		The position of the toolbar.
+		/// </summary>
+		public int Right
+		{
+			get
+			{
+				return right;
+			}
+
+			set
+			{
+				right=value;
+			}
+		}
+
+		/// <summary>
+		///		The position of the toolbar.
+		/// </summary>
+		public int Top
+		{
+			get
+			{
+				return top;
+			}
+
+			set
+			{
+				top=value;
+			}
+		}
+
+		/// <summary>
+		///		The position of the toolbar.
+		/// </summary>
+		public int Bottom
+		{
+			get
+			{
+				return bottom;
+			}
+
+			set
+			{
+				bottom=value;
+			}
+		}
+
+		/// <summary>
 		///		Finds the CommandBarControls for a given OfficeWindow that maps to this toolbar.
 		/// </summary>
 		/// <param name="window">The window to search through.</param>
@@ -252,8 +352,25 @@ namespace BlueprintIT.Office
 		internal void Apply(OfficeWindow window, CommandBar commandbar)
 		{
 			Apply(window,commandbar.Controls);
+			commandbar.RowIndex=rowIndex;
 			commandbar.Visible=visible.GetValue(window);
 			commandbar.Enabled=enabled.GetValue(window);
+			if (left>=0)
+			{
+				commandbar.Left=left;
+			}
+			else if (right>=0)
+			{
+				commandbar.Left=(window.Width-commandbar.Width)-right;
+			}
+			if (top>=0)
+			{
+				commandbar.Top=top;
+			}
+			else if (bottom>=0)
+			{
+				commandbar.Top=(window.Height-commandbar.Height)-bottom;
+			}
 		}
 
 		/// <summary>
@@ -433,7 +550,20 @@ namespace BlueprintIT.Office
 			foreach (ToolbarControl tcontrol in toadd)
 			{
 				OfficeUIManager.log("Creating new control");
-				CommandBarControl control = controls.Add(tcontrol.Type,1,System.Reflection.Missing.Value,System.Reflection.Missing.Value,true);
+				object newpos = System.Reflection.Missing.Value;
+				if (tcontrol.Before!=null)
+				{
+					int pos = 0;
+					foreach (CommandBarControl findcontrol in controls)
+					{
+						pos++;
+						if (findcontrol.Caption==tcontrol.Before)
+						{
+							newpos=pos;
+						}
+					}
+				}
+				CommandBarControl control = controls.Add(tcontrol.Type,1,System.Reflection.Missing.Value,newpos,true);
 				control.Tag = tcontrol.InternalTag+"#"+NEXT_TAG;
 				control.OnAction = "!<"+OfficeUIManager.AddinProgID+">";
 				NEXT_TAG++;
@@ -812,6 +942,14 @@ namespace BlueprintIT.Office
 		///		A tag to be linked to the control.
 		/// </summary>
 		private object tag = null;
+		/// <summary>
+		///		Determines whether the control begins a new group on the toolbar.
+		/// </summary>
+		private bool beginGroup = false;
+		/// <summary>
+		///		The caption of the control that this control should appear before.
+		/// </summary>
+		public string before = null;
 
 		/// <summary>
 		///		Creates a new toolbar control.
@@ -853,6 +991,7 @@ namespace BlueprintIT.Office
 			control.Visible=visible.GetValue(window);
 			control.Enabled=enabled.GetValue(window);
 			control.Priority=priority;
+			control.BeginGroup=beginGroup;
 			if (tip!=null)
 			{
 				control.TooltipText = tip;
@@ -929,6 +1068,22 @@ namespace BlueprintIT.Office
 		}
 
 		/// <summary>
+		///		Whether the control begins a new group on the toolbar.
+		/// </summary>
+		public bool BeginGroup
+		{
+			get
+			{
+				return beginGroup;
+			}
+
+			set
+			{
+				beginGroup=value;
+			}
+		}
+
+		/// <summary>
 		///		The caption of the control.
 		/// </summary>
 		public virtual string Caption
@@ -941,6 +1096,22 @@ namespace BlueprintIT.Office
 			set
 			{
 				caption=value;
+			}
+		}
+
+		/// <summary>
+		///		The caption of the control that this control should appear before.
+		/// </summary>
+		public virtual string Before
+		{
+			get
+			{
+				return before;
+			}
+
+			set
+			{
+				before=value;
 			}
 		}
 
