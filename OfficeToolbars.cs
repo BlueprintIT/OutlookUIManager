@@ -2,7 +2,7 @@
  * $HeadURL$
  * $LastChangedBy$
  * $Date$
- * $Revision$
+ * $Revision: 73 $
  */
 
 using System;
@@ -349,10 +349,9 @@ namespace BlueprintIT.Office
 		/// <param name="commandbar"></param>
 		internal void Apply(OfficeWindow window, CommandBar commandbar)
 		{
-			Apply(window,commandbar.Controls);
+			commandbar.Enabled=enabled.GetValue(window);
 			commandbar.RowIndex=rowIndex;
 			commandbar.Visible=visible.GetValue(window);
-			commandbar.Enabled=enabled.GetValue(window);
 			if (left>=0)
 			{
 				commandbar.Left=left;
@@ -369,6 +368,7 @@ namespace BlueprintIT.Office
 			{
 				commandbar.Top=(window.Height-commandbar.Height)-bottom;
 			}
+			Apply(window,commandbar.Controls);
 		}
 
 		/// <summary>
