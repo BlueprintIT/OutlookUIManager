@@ -1,3 +1,10 @@
+/*
+ * $HeadURL$
+ * $LastChangedBy$
+ * $Date$
+ * $Revision$
+ */
+
 using System;
 using System.Collections;
 using Microsoft.Office.Core;

@@ -1,3 +1,10 @@
+/*
+ * $HeadURL$
+ * $LastChangedBy$
+ * $Date$
+ * $Revision$
+ */
+
 using System;
 using System.Reflection;
 using RlOutlook = Microsoft.Office.Interop.Outlook;
