@@ -461,7 +461,7 @@ namespace BlueprintIT.Office.Outlook
 		}
 	}
 
-	public class OutlookContactItem: OutlookNonNoteItem, RlOutlook._ContactItem
+	public class OutlookContactItem: OutlookNonNoteItem, RlOutlook.ContactItem
 	{
 		public OutlookContactItem(object item): base(item)
 		{
@@ -2208,7 +2208,7 @@ namespace BlueprintIT.Office.Outlook
 		}
 	}
 
-	public class OutlookDocumentItem: OutlookNonNoteItem, RlOutlook._DocumentItem
+	public class OutlookDocumentItem: OutlookNonNoteItem, RlOutlook.DocumentItem
 	{
 		public OutlookDocumentItem(object item): base(item)
 		{
@@ -2398,7 +2398,7 @@ namespace BlueprintIT.Office.Outlook
 		}
 	}
 
-	public class OutlookReportItem: OutlookNonNoteItem, RlOutlook._ReportItem
+	public class OutlookReportItem: OutlookNonNoteItem, RlOutlook.ReportItem
 	{
 		public OutlookReportItem(object item): base(item)
 		{
@@ -2467,7 +2467,7 @@ namespace BlueprintIT.Office.Outlook
 		}
 	}
 
-	public class OutlookTaskRequestItem: OutlookNonNoteItem, RlOutlook._TaskRequestItem
+	public class OutlookTaskRequestItem: OutlookNonNoteItem, RlOutlook.TaskRequestItem
 	{
 		public OutlookTaskRequestItem(object item): base(item)
 		{
@@ -2487,7 +2487,7 @@ namespace BlueprintIT.Office.Outlook
 		}
 	}
 
-	public class OutlookTaskRequestAcceptItem: OutlookNonNoteItem, RlOutlook._TaskRequestAcceptItem
+	public class OutlookTaskRequestAcceptItem: OutlookNonNoteItem, RlOutlook.TaskRequestAcceptItem
 	{
 		public OutlookTaskRequestAcceptItem(object item): base(item)
 		{
@@ -2507,7 +2507,7 @@ namespace BlueprintIT.Office.Outlook
 		}
 	}
 
-	public class OutlookTaskRequestDeclineItem: OutlookNonNoteItem, RlOutlook._TaskRequestDeclineItem
+	public class OutlookTaskRequestDeclineItem: OutlookNonNoteItem, RlOutlook.TaskRequestDeclineItem
 	{
 		public OutlookTaskRequestDeclineItem(object item): base(item)
 		{
@@ -2527,7 +2527,7 @@ namespace BlueprintIT.Office.Outlook
 		}
 	}
 
-	public class OutlookTaskRequestUpdateItem: OutlookNonNoteItem, RlOutlook._TaskRequestUpdateItem
+	public class OutlookTaskRequestUpdateItem: OutlookNonNoteItem, RlOutlook.TaskRequestUpdateItem
 	{
 		public OutlookTaskRequestUpdateItem(object item): base(item)
 		{
@@ -2548,10 +2548,13 @@ namespace BlueprintIT.Office.Outlook
 	}
 	#endregion
 
-	public abstract class OutlookItem: IDisposable
+	public abstract class OutlookItem: IDisposable, RlOutlook.ItemEvents_Event
+#if (OL2000)
+		, RlOutlook.ItemEvents_10_Event
+#endif
 	{
 		protected object oItem;
-#if (OL2002)
+#if (OL2000)
 		private RlOutlook.ItemProperties itemProperties;
 #endif
 		internal static bool UseMAPI = true;
@@ -2659,7 +2662,7 @@ namespace BlueprintIT.Office.Outlook
 			if (oItem!=null)
 			{
 #if (COMRELEASE)
-#if (OL2002)
+#if (OL2000)
 				if (itemProperties!=null)
 				{
 					System.Runtime.InteropServices.Marshal.ReleaseComObject(itemProperties);
@@ -2667,7 +2670,7 @@ namespace BlueprintIT.Office.Outlook
 #endif
 				System.Runtime.InteropServices.Marshal.ReleaseComObject(oItem);
 #endif
-#if (OL2002)
+#if (OL2000)
 				itemProperties=null;
 #endif
 				if (propset!=null)
@@ -2685,9 +2688,19 @@ namespace BlueprintIT.Office.Outlook
 		{
 			get
 			{
-				return (RlOutlook.ItemEvents_Event)oItem;
+				return (RlOutlook.ItemEvents_Event)this;
 			}
 		}
+
+#if (OL2000)
+		public RlOutlook.ItemEvents_10_Event Events10
+		{
+			get
+			{
+				return (RlOutlook.ItemEvents_10_Event)this;
+			}
+		}
+#endif
 
 		public object Item
 		{
@@ -2871,7 +2884,7 @@ namespace BlueprintIT.Office.Outlook
 			}
 		}
 
-#if (OL2002)
+#if (OL2000)
 		public virtual RlOutlook.OlDownloadState DownloadState
 		{
 			get
@@ -2905,7 +2918,7 @@ namespace BlueprintIT.Office.Outlook
 			}
 		}
 
-#if (OL2002)
+#if (OL2000)
 		public virtual RlOutlook.ItemProperties ItemProperties
 		{
 			get
@@ -3047,6 +3060,417 @@ namespace BlueprintIT.Office.Outlook
 		{
 			CallMethod("SaveAs",arg0,arg1);
 		}
-	#endregion
+		#endregion
+
+		#region ItemEvents_Event Members
+
+		event RlOutlook.ItemEvents_AttachmentReadEventHandler RlOutlook.ItemEvents_Event.AttachmentRead
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).AttachmentRead+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).AttachmentRead-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_PropertyChangeEventHandler RlOutlook.ItemEvents_Event.PropertyChange
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).PropertyChange+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).PropertyChange-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_ReplyAllEventHandler RlOutlook.ItemEvents_Event.ReplyAll
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).ReplyAll+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).ReplyAll-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_CustomActionEventHandler RlOutlook.ItemEvents_Event.CustomAction
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).CustomAction+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).CustomAction-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_BeforeAttachmentSaveEventHandler RlOutlook.ItemEvents_Event.BeforeAttachmentSave
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).BeforeAttachmentSave+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).BeforeAttachmentSave-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_SendEventHandler RlOutlook.ItemEvents_Event.Send
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Send+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Send-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_WriteEventHandler RlOutlook.ItemEvents_Event.Write
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Write+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Write-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_CloseEventHandler RlOutlook.ItemEvents_Event.Close
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Close+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Close-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_OpenEventHandler RlOutlook.ItemEvents_Event.Open
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Open+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Open-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_AttachmentAddEventHandler RlOutlook.ItemEvents_Event.AttachmentAdd
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).AttachmentAdd+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).AttachmentAdd-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_BeforeCheckNamesEventHandler RlOutlook.ItemEvents_Event.BeforeCheckNames
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).BeforeCheckNames+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).BeforeCheckNames-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_ForwardEventHandler RlOutlook.ItemEvents_Event.Forward
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Forward+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Forward-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_CustomPropertyChangeEventHandler RlOutlook.ItemEvents_Event.CustomPropertyChange
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).CustomPropertyChange+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).CustomPropertyChange-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_ReplyEventHandler RlOutlook.ItemEvents_Event.Reply
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Reply+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Reply-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_ReadEventHandler RlOutlook.ItemEvents_Event.Read
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Read+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_Event)oItem).Read-=value;
+			}
+		}
+
+		#endregion
+		
+		#region ItemEvents_10_Event Members
+
+		event RlOutlook.ItemEvents_10_AttachmentReadEventHandler RlOutlook.ItemEvents_10_Event.AttachmentRead
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).AttachmentRead+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).AttachmentRead-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_BeforeDeleteEventHandler RlOutlook.ItemEvents_10_Event.BeforeDelete
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).BeforeDelete+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).BeforeDelete-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_PropertyChangeEventHandler RlOutlook.ItemEvents_10_Event.PropertyChange
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).PropertyChange+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).PropertyChange-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_ReplyAllEventHandler RlOutlook.ItemEvents_10_Event.ReplyAll
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).ReplyAll+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).ReplyAll-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_CustomActionEventHandler RlOutlook.ItemEvents_10_Event.CustomAction
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).CustomAction+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).CustomAction-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_BeforeAttachmentSaveEventHandler RlOutlook.ItemEvents_10_Event.BeforeAttachmentSave
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).BeforeAttachmentSave+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).BeforeAttachmentSave-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_SendEventHandler RlOutlook.ItemEvents_10_Event.Send
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Send+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Send-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_WriteEventHandler RlOutlook.ItemEvents_10_Event.Write
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Write+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Write-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_CloseEventHandler RlOutlook.ItemEvents_10_Event.Close
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Close+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Close-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_OpenEventHandler RlOutlook.ItemEvents_10_Event.Open
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Open+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Open-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_AttachmentAddEventHandler RlOutlook.ItemEvents_10_Event.AttachmentAdd
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).AttachmentAdd+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).AttachmentAdd-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_BeforeCheckNamesEventHandler RlOutlook.ItemEvents_10_Event.BeforeCheckNames
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).BeforeCheckNames+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).BeforeCheckNames-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_ForwardEventHandler RlOutlook.ItemEvents_10_Event.Forward
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Forward+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Forward-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_CustomPropertyChangeEventHandler RlOutlook.ItemEvents_10_Event.CustomPropertyChange
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).CustomPropertyChange+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).CustomPropertyChange-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_ReplyEventHandler RlOutlook.ItemEvents_10_Event.Reply
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Reply+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Reply-=value;
+			}
+		}
+
+		event RlOutlook.ItemEvents_10_ReadEventHandler RlOutlook.ItemEvents_10_Event.Read
+		{
+			add
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Read+=value;
+			}
+
+			remove
+			{
+				((RlOutlook.ItemEvents_10_Event)oItem).Read-=value;
+			}
+		}
+
+		#endregion
 	}
 }
