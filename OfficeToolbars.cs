@@ -2,7 +2,7 @@
  * $HeadURL$
  * $LastChangedBy$
  * $Date$
- * $Revision: 73 $
+ * $Revision$
  */
 
 using System;
